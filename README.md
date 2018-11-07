@@ -20,7 +20,7 @@ The network is trained for 250 epochs with vanilla minibatch SGD and learning ra
 ### BatchNorm applied Multilayer Perceptron
 The network has 2 fully connected layers with ReLU activations. The first hidden layer has 256 units and the second 128 units with batchnorm operation on data entering and exiting the hidden layer with 128 nuerons. The network is initialized with Xavier-He initialization.
 
-The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.971.
+The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.973.
 
 ### Convolution Neural Networks
 The network has a convolutional layer with two 3x3 kernels with a dilation of 2 followed by a hidden layer of 128 neurons which then lead to the output.
@@ -118,10 +118,8 @@ The current code **DOES NOT** use the vectorize class and the vectorize operatio
 For the current configuration, the model's gradient backpropagation is tested with gradient checking in the test_CNN.py file.
 
 
-### Sample architecture
-A simple architecture with the changes suggested above for more complex networks is shown here:
-
-
+#### Sample architecture(using Vectorize)
+A simple architecture with the changes suggested above for more complex networks using Vectorize with gradient backpropagation of the image signal is shown here:
 
     import numpy as np
 
@@ -153,3 +151,36 @@ A simple architecture with the changes suggested above for more complex networks
     print('Test accuracy:', test_acc)
 
 While the above model trains significantly slower, the model gains an accuracy of 0.95 in the first 5 epochs with a learning rate of 1e-2 and vanilla minibacth SGD.
+
+#### Sample architecture(without making the changes explained above):
+    
+The code shown below is the CNN that is currently being used(without making the changes explained above). As you can probably guess, the vectorization
+takes place inside the Cnovolution2D class and the class needs to be changed as explained above to stack more convolutional layers or complicate the network. This current structure allows you to increase the number of convolution kernels you can have in the first convolution layer, while correspondingly changing the number of inputs to the batch norm and the linear layers.\
+
+However, to stack more convolutional layers, the changes explained in the previous section must be implemented.
+
+    np.random.seed(42)
+    n_classes = 10
+
+    inputs, labels = load_mnist_images()
+
+    # Define network without batch norm
+    net = Network(learning_rate = 1e-3)
+    net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+    net.add_layer(ReLU())
+    net.add_layer(BatchNorm(800))
+    net.add_layer(Linear(800, 128))
+    net.add_layer(ReLU())
+    net.add_layer(BatchNorm(128))
+    net.add_layer(Linear(128, n_classes))
+    net.set_loss(SoftmaxCrossEntropyLoss())
+
+    train_network(net, inputs, labels, 250)
+    test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
+                                            batch_size=128)
+    print('Baseline CNN Network with batch normalization:')
+    print('Test loss:', test_loss)
+
+    print('Test accuracy:', test_acc)
+    return net
+
