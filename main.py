@@ -1,10 +1,34 @@
 import numpy as np
 
-from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm
+from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D
 from network import Network
 
+def CNN():
+    np.random.seed(42)
+    n_classes = 10
 
-def main():
+    inputs, labels = load_mnist_images()
+
+    # Define network without batch norm
+    net = Network(learning_rate = 1e-3)
+    net.add_layer(Convolution2D(1,1,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+    net.add_layer(ReLU())
+    net.add_layer(BatchNorm(400))
+    net.add_layer(Linear(400, 128))
+    net.add_layer(ReLU())
+    net.add_layer(BatchNorm(128))
+    net.add_layer(Linear(128, n_classes))
+    net.set_loss(SoftmaxCrossEntropyLoss())
+
+    train_network(net, inputs, labels, 250)
+    test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
+                                            batch_size=128)
+    print('Baseline MLP Network without batch normalization:')
+    print('Test loss:', test_loss)
+
+    print('Test accuracy:', test_acc)
+
+def Vanilla_implementation():
     '''
     Trains two networks on the MNIST dataset.
     Both have two hidden ReLU layers with 256 and 128 units
@@ -19,6 +43,35 @@ def main():
     # Define network without batch norm
     net = Network(learning_rate = 1e-3)
     net.add_layer(Linear(dim, 256))
+    net.add_layer(ReLU())
+    net.add_layer(Linear(256, 128))
+    net.add_layer(ReLU())
+    net.add_layer(Linear(128, n_classes))
+    net.set_loss(SoftmaxCrossEntropyLoss())
+
+    train_network(net, inputs, labels, 250)
+    test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
+                                           batch_size=128)
+    print('Baseline MLP Network without batch normalization:')
+    print('Test loss:', test_loss)
+    print('Test accuracy:', test_acc)
+
+def Batch_Norm_implementation():
+    '''
+    Trains two networks on the MNIST dataset.
+    Both have two hidden ReLU layers with 256 and 128 units with batch norm applied between layers
+    The fist one has a mean batch normalization layer before every layer
+    '''
+    np.random.seed(42)
+    n_classes = 10
+    dim = 784
+
+    inputs, labels = load_normalized_mnist_data()
+
+    # Define network without batch norm
+    net = Network(learning_rate = 1e-3)
+    net.add_layer(Linear(dim, 256))
+    net.add_layer(BatchNorm(256))
     net.add_layer(ReLU())
     net.add_layer(BatchNorm(256))
     net.add_layer(Linear(256, 128))
@@ -71,6 +124,41 @@ def load_normalized_mnist_data():
 
     return inputs, labels
 
+def load_mnist_images():
+    '''
+    Loads and normalizes the MNIST data. Reads the data from
+        data/mnist_train.csv
+        data/mnist_test.csv
+    These can be downloaded from https://pjreddie.com/projects/mnist-in-csv/
+    Returns two dictionaries, input and labels
+    Each has keys 'train', 'val', 'test' which map to numpy arrays
+    '''
+    data = np.loadtxt('data/mnist_train.csv', dtype=int, delimiter=',')
+    test_data = np.loadtxt('data/mnist_test.csv', dtype=int, delimiter=',')
+
+    inputs = dict()
+    labels = dict()
+
+    train_data = data[:50000]
+    train_inputs = train_data[:, 1:].reshape(-1,1,28,28)
+
+    val_data = data[50000:]
+    val_inputs = val_data[:, 1:].reshape(-1,1,28,28)
+
+    test_inputs = test_data[:, 1:].reshape(-1,1,28,28)
+
+    mean = np.mean(train_inputs)
+    std = np.std(train_inputs)
+
+    inputs['train'] = (train_inputs - mean)/std
+    inputs['val'] = (val_inputs  - mean)/std  
+    inputs['test'] = (test_inputs - mean)/std 
+
+    labels['train'] = train_data[:, 0]
+    labels['val'] = val_data[:, 0]
+    labels['test'] = test_data[:, 0]
+
+    return inputs, labels
 
 def validate_network(network, inputs, labels, batch_size):
     '''

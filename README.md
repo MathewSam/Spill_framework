@@ -2,7 +2,9 @@
 A basic fully connected network implemented purely in NumPy and trained and tested on the MNIST dataset.
 
 ## Recommended Python Libraries
-Numpy(ver 1.14.3)
+numpy(ver 1.14.3)
+math(as in python version 3.6.5)
+pytest(ver 3.5.1)
 
 ## Data Statistics
 The MNIST dataset is split into 50000 train, 10000 validation and 10000 test samples. All splits are normalized using the statistics of the training split (using the global mean and standard deviation, not per pixel).
@@ -20,13 +22,15 @@ The network has 2 fully connected layers with ReLU activations. The first hidden
 The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.971.
 
 ### Convolution Neural Networks
-The network has a convolutional layer with a 3x3 kernel with a dilation of 2 followed by a hidden layer of 128 neurons which then lead to the output.
+The network has a convolutional layer with two 3x3 kernels with a dilation of 2 followed by a hidden layer of 128 neurons which then lead to the output.
 
-The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.97.
+The network is trained for 150 epochs with vanilla minibatch SGD and learning rate 1e-2. The final accuracy on the test set is about 0.97.
 
 ## Code structure:
 ### layers.py
 Contains classes that represent layers for different transformations. Each class has a forward and a backward method that define a transformation and its gradient. The class keeps track of the variables defining the transformation and the variables needed to calculate the gradient. The file also contains a class that defines the softmax cross entropy loss.
+
+### im2col.py
 
 ### network.py
 Defines Network, a configurable class representing a sequential neural network with any combination of layers. Network has a train function that performs minibatch SGD.
