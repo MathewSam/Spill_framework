@@ -25,7 +25,7 @@ The network is trained for 250 epochs with vanilla minibatch SGD and learning ra
 ### Convolution Neural Networks
 The network has a convolutional layer with two 3x3 kernels with a dilation of 2 followed by a hidden layer of 128 neurons which then lead to the output.
 
-The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-2. The final accuracy on the test set is about 0.976.
+The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.976.
 
 ## Code structure:
 ### layers.py
