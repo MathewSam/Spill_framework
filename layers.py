@@ -94,8 +94,9 @@ class BatchNorm(Layer):
         Args:
             num_features:number of features in vector for which normalization is done
         Returns:
-            out:cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1) mean normalized and shifted features
+            X_hat:Normalized feature vector
         '''
+        assert isinstance(num_features,int)
         self.beta = np.zeros((1,num_features))
     
     def __repr__(self):

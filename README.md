@@ -52,6 +52,14 @@ Defines Network, a configurable class representing a sequential neural network w
 ### main.py
 Data loading, training and validation scripts. Running it trains the networks described in experiments. For loading the data it expects two files "data/mnist_train.csv" and "data/mnist_test.csv". These can be downloaded from https://pjreddie.com/projects/mnist-in-csv/. To run use "python3 main.py".
 
+### test_batch_norm.py
+Testing module to test whether the batchnorm operations work
+
+### test_CNN.py
+Testing module to test whether the CNN operations work
+
+*Both above test can be run by simply running pytest -v
+
 ## Design Choices:
 The Convolution2D class is responsible for implementing the convolution layer which replaces the first linear layer. A few design choices were made to speed up the training process. However, with a few small adjustments, one can make the model generalizable to any kind of CNN structure with more than one convolutional layer. 
 
