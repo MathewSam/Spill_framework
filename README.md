@@ -2,9 +2,10 @@
 A basic fully connected network implemented purely in NumPy and trained and tested on the MNIST dataset.
 
 ## Recommended Python Libraries
-numpy(ver 1.14.3)
-math(as in python version 3.6.5)
-pytest(ver 3.5.1)
+1. numpy(ver 1.14.3)
+2. math(as in python version 3.6.5)
+3. pytest(ver 3.5.1)
+4. pickle
 
 ## Data Statistics
 The MNIST dataset is split into 50000 train, 10000 validation and 10000 test samples. All splits are normalized using the statistics of the training split (using the global mean and standard deviation, not per pixel).

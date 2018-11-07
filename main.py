@@ -1,9 +1,14 @@
 import numpy as np
+import argparse
+import pickle 
 
 from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D
 from network import Network
 
-def main():
+def CNN():
+    '''
+    CNN network on the MNIST dataset
+    '''
     np.random.seed(42)
     n_classes = 10
 
@@ -27,12 +32,12 @@ def main():
     print('Test loss:', test_loss)
 
     print('Test accuracy:', test_acc)
+    return net
 
 def Vanilla_implementation():
     '''
     Trains two networks on the MNIST dataset.
     Both have two hidden ReLU layers with 256 and 128 units
-    The fist one has a mean batch normalization layer before every layer
     '''
     np.random.seed(42)
     n_classes = 10
@@ -55,10 +60,11 @@ def Vanilla_implementation():
     print('Baseline MLP Network without batch normalization:')
     print('Test loss:', test_loss)
     print('Test accuracy:', test_acc)
+    return net
 
 def Batch_Norm_implementation():
     '''
-    Trains two networks on the MNIST dataset.
+    Trains network on the MNIST dataset.
     Both have two hidden ReLU layers with 256 and 128 units with batch norm applied between layers
     The fist one has a mean batch normalization layer before every layer
     '''
@@ -85,7 +91,7 @@ def Batch_Norm_implementation():
     print('Baseline MLP Network with batch normalization:')
     print('Test loss:', test_loss)
     print('Test accuracy:', test_acc)
-
+    return net
 
 def load_normalized_mnist_data():
     '''
@@ -243,4 +249,20 @@ def train_network(network, inputs, labels, n_epochs, batch_size=128):
         print(prnt_tmplt.format(epoch, avg_train_loss, avg_val_loss, val_acc))
 
 if __name__ == '__main__':
-    Batch_Norm_implementation()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("network_type",help=" Enter nature of network to train and observe. Supported types: Bathc_Norm , Vanilla , CNN",type=str)
+    parser.add_argument("-o","--output",help="To store network trained to a file",action="store_true")
+    args = parser.parse_args()
+
+    assert (args.network_type == "Batch_Norm") or (args.network_type == "Vanilla") or (args.network_type == "CNN"),"This network type is not supported"
+    
+    if args.network_type == "Batch_Norm":
+        net = Batch_Norm_implementation()
+    elif args.network_type == "Vanilla":
+        net = Vanilla_implementation()
+    elif args.network_type == "CNN":
+        net = CNN()
+    
+    if args.output:
+        with open('Saved_model.pickle','wb') as f:
+            pickle.dump(net,f)
