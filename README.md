@@ -58,7 +58,7 @@ The Convolution2D class is responsible for implementing the convolution layer wh
 ### Convolution2D backpropagation:
 The current backpropagation algorithm does not backpropagate the signal gradient since the convolutional layer is the first layer without any further convolution layers in the mix. This saves computational energy and time during training making the algorithm train faster. One can adjust this to allow for calculating the signal gradient by replacing the backward and forward function of Convolution2D with
 
-'''
+
     def forward(self,X,train=True):
         batch_size,channels_in,image_height,image_width = X.shape
         self.output_height = (image_height - self.filter_size + 2*self.pad)//self.stride + 1
@@ -99,41 +99,41 @@ The current backpropagation algorithm does not backpropagate the signal gradient
         dX = col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
         
         return dX,[(self.W, dW),(self.b, db)]
-'''
+
 Using the Vectorize layer can help stack the convolutional layers to the linear layers and provide a means to reshape the gradient as needed. However, making these changes adds time and computation to the code. The current code has been designed to train fast with as little unnecessary computation as possible
 
 ### Sample architecture
 A simple architecture with the changes suggested above is shown here:
 
-'''
-import numpy as np
 
-from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D,Vectorize
-from network import Network
 
-np.random.seed(42)
-n_classes = 10
+    import numpy as np
 
-inputs, labels = load_mnist_images()
+    from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D,Vectorize
+    from network import Network
 
-net = Network(learning_rate = 1e-3)
-net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
-net.add_layer(Vectorize())
-net.add_layer(ReLU())
-net.add_layer(BatchNorm(800))
-net.add_layer(Linear(800, 128))
-net.add_layer(ReLU())
-net.add_layer(BatchNorm(128))
-net.add_layer(Linear(128, n_classes))
-net.set_loss(SoftmaxCrossEntropyLoss())
+    np.random.seed(42)
+    n_classes = 10
 
-train_network(net, inputs, labels, 250)
-test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
-                                        batch_size=128)
-print('Baseline MLP Network without batch normalization:')
-print('Test loss:', test_loss)
+    inputs, labels = load_mnist_images()
 
-print('Test accuracy:', test_acc)
-'''
+    net = Network(learning_rate = 1e-3)
+    net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+    net.add_layer(Vectorize())
+    net.add_layer(ReLU())
+    net.add_layer(BatchNorm(800))
+    net.add_layer(Linear(800, 128))
+    net.add_layer(ReLU())
+    net.add_layer(BatchNorm(128))
+    net.add_layer(Linear(128, n_classes))
+    net.set_loss(SoftmaxCrossEntropyLoss())
+
+    train_network(net, inputs, labels, 250)
+    test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
+                                            batch_size=128)
+    print('Baseline MLP Network without batch normalization:')
+    print('Test loss:', test_loss)
+
+    print('Test accuracy:', test_acc)
 
 While the above model trains significantly slower, the model gains an accuracy of 0.95 in the first 5 epochs with a learning rate of 1e-2 and vanilla SGD.
