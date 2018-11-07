@@ -3,7 +3,7 @@ import numpy as np
 from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D
 from network import Network
 
-def CNN():
+def main():
     np.random.seed(42)
     n_classes = 10
 
@@ -11,10 +11,10 @@ def CNN():
 
     # Define network without batch norm
     net = Network(learning_rate = 1e-3)
-    net.add_layer(Convolution2D(1,1,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+    net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
     net.add_layer(ReLU())
-    net.add_layer(BatchNorm(400))
-    net.add_layer(Linear(400, 128))
+    net.add_layer(BatchNorm(800))
+    net.add_layer(Linear(800, 128))
     net.add_layer(ReLU())
     net.add_layer(BatchNorm(128))
     net.add_layer(Linear(128, n_classes))
@@ -23,7 +23,7 @@ def CNN():
     train_network(net, inputs, labels, 250)
     test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
                                             batch_size=128)
-    print('Baseline MLP Network without batch normalization:')
+    print('Baseline CNN Network with batch normalization:')
     print('Test loss:', test_loss)
 
     print('Test accuracy:', test_acc)
@@ -68,7 +68,6 @@ def Batch_Norm_implementation():
 
     inputs, labels = load_normalized_mnist_data()
 
-    # Define network without batch norm
     net = Network(learning_rate = 1e-3)
     net.add_layer(Linear(dim, 256))
     net.add_layer(BatchNorm(256))
@@ -83,7 +82,7 @@ def Batch_Norm_implementation():
     train_network(net, inputs, labels, 250)
     test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
                                            batch_size=128)
-    print('Baseline MLP Network without batch normalization:')
+    print('Baseline MLP Network with batch normalization:')
     print('Test loss:', test_loss)
     print('Test accuracy:', test_acc)
 
@@ -244,4 +243,4 @@ def train_network(network, inputs, labels, n_epochs, batch_size=128):
         print(prnt_tmplt.format(epoch, avg_train_loss, avg_val_loss, val_acc))
 
 if __name__ == '__main__':
-    BatchNorm
+    Batch_Norm_implementation()

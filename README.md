@@ -38,9 +38,6 @@ Responsible for non linear relu operation on inputs to the layer
 Responsible for version of batchnorm described in question as in Task1
 #### Convolution2D
 Responsible for the 2D convolution layer/kernels which is learnt and used as required 
-#### Vectorize
-Responsible for vectorizing inputs to the layer from the output of a CNN stack
-*Not required by question. Was added to allow for freedom to add convolutional layers
 
 #### SoftmaxCrossEntropyLoss
 Uses logits to calculate soft max probabilities and associated loss from cross entropy function
@@ -54,3 +51,89 @@ Defines Network, a configurable class representing a sequential neural network w
 
 ### main.py
 Data loading, training and validation scripts. Running it trains the networks described in experiments. For loading the data it expects two files "data/mnist_train.csv" and "data/mnist_test.csv". These can be downloaded from https://pjreddie.com/projects/mnist-in-csv/. To run use "python3 main.py".
+
+## Design Choices:
+The Convolution2D class is responsible for implementing the convolution layer which replaces the first linear layer. A few design choices were made to speed up the training process. However, with a few small adjustments, one can make the model generalizable to any kind of CNN structure with more than one convolutional layer. 
+
+### Convolution2D backpropagation:
+The current backpropagation algorithm does not backpropagate the signal gradient since the convolutional layer is the first layer without any further convolution layers in the mix. This saves computational energy and time during training making the algorithm train faster. One can adjust this to allow for calculating the signal gradient by replacing the backward and forward function of Convolution2D with
+
+'''
+    def forward(self,X,train=True):
+        batch_size,channels_in,image_height,image_width = X.shape
+        self.output_height = (image_height - self.filter_size + 2*self.pad)//self.stride + 1
+        self.output_width = (image_width - self.filter_size + 2*self.pad)//self.stride + 1
+        
+        X_padded = np.pad(X, ((0, 0), (0, 0), (self.pad, self.pad), (self.pad, self.pad)), mode='constant')
+        temp_Weights = self.W.reshape(self.channels_out,-1)
+
+        cols = X_padded[:, self.channel_shuffling, self.row_shuffling, self.column_shuffling]
+        cols = cols.transpose(1, 2, 0).reshape((self.filter_size) * (self.filter_size) * channels_in, -1)
+
+        if(train==True):
+            self.cache_in = cols
+
+        output = np.dot(temp_Weights,cols) + self.b
+        output = output.reshape(self.channels_out,self.output_height,self.output_width,batch_size)
+        output = output.transpose(3, 0, 1, 2)
+        return output
+
+    def backward(self,dY):
+        
+        batch_size = dY.shape[0]
+        #Calculating bias
+        db = np.sum(dY, axis=(0, 2, 3))
+        db = db.reshape(self.channels_out, 1)
+        
+        #Calculating weights in kernel
+        dY_reshaped = dY.transpose(1, 2, 3, 0).reshape(self.channels_out, -1)
+        dW = np.dot(dY_reshaped,self.cache_in.T)
+        dW = dW.reshape(self.W.shape)
+        #Setting dilation positions to 0
+        dW = dW*self.set_weights_zero
+
+        #Calculating X gradient for future use
+        W_reshape = self.W.reshape(self.channels_out, -1)
+        dX_col = np.dot(W_reshape.T,dY_reshaped)
+        x_shape = (batch_size,self.x_shape[1],self.x_shape[2],self.x_shape[3]) 
+        dX = col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
+        
+        return dX,[(self.W, dW),(self.b, db)]
+'''
+Using the Vectorize layer can help stack the convolutional layers to the linear layers and provide a means to reshape the gradient as needed. However, making these changes adds time and computation to the code. The current code has been designed to train fast with as little unnecessary computation as possible
+
+### Sample architecture
+A simple architecture with the changes suggested above is shown here:
+
+'''
+import numpy as np
+
+from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D,Vectorize
+from network import Network
+
+np.random.seed(42)
+n_classes = 10
+
+inputs, labels = load_mnist_images()
+
+net = Network(learning_rate = 1e-3)
+net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+net.add_layer(Vectorize())
+net.add_layer(ReLU())
+net.add_layer(BatchNorm(800))
+net.add_layer(Linear(800, 128))
+net.add_layer(ReLU())
+net.add_layer(BatchNorm(128))
+net.add_layer(Linear(128, n_classes))
+net.set_loss(SoftmaxCrossEntropyLoss())
+
+train_network(net, inputs, labels, 250)
+test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
+                                        batch_size=128)
+print('Baseline MLP Network without batch normalization:')
+print('Test loss:', test_loss)
+
+print('Test accuracy:', test_acc)
+'''
+
+While the above model trains significantly slower, the model gains an accuracy of 0.95 in the first 5 epochs with a learning rate of 1e-2 and vanilla SGD.

@@ -182,27 +182,13 @@ class Convolution2D(Layer):
         output = np.dot(temp_Weights,cols) + self.b
         output = output.reshape(self.channels_out,self.output_height,self.output_width,batch_size)
         output = output.transpose(3, 0, 1, 2)
-        return output
-        #return output.reshape(batch_size,-1)
-
-    def col2im_indices(self,cols, x_shape, field_height=3, field_width=3, padding=1,stride=1):
-        N, C, H, W = x_shape
-        H_padded, W_padded = H + 2 * padding, W + 2 * padding
-        x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
-        k,i,j = self.channel_shuffling,self.row_shuffling,self.column_shuffling
-        cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
-        cols_reshaped = cols_reshaped.transpose(2, 0, 1)
-        np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
-        if padding == 0:
-            return x_padded
-        return x_padded[:, :, padding:-padding, padding:-padding]
-
+        #return output
+        return output.reshape(batch_size,-1)
 
     def backward(self,dY):
         
         #reshaping incoming gradients to output image dimensions
-        #dY = dY.reshape(-1,self.channels_out,self.output_height,self.output_width)
-        batch_size = dY.shape[0]
+        dY = dY.reshape(-1,self.channels_out,self.output_height,self.output_width)
         #Calculating bias
         db = np.sum(dY, axis=(0, 2, 3))
         db = db.reshape(self.channels_out, 1)
@@ -211,14 +197,10 @@ class Convolution2D(Layer):
         dY_reshaped = dY.transpose(1, 2, 3, 0).reshape(self.channels_out, -1)
         dW = np.dot(dY_reshaped,self.cache_in.T)
         dW = dW.reshape(self.W.shape)
+        
         #Setting dilation positions to 0
         dW = dW*self.set_weights_zero
-
-        #Calculating X gradient for future use
-        W_reshape = self.W.reshape(self.channels_out, -1)
-        dX_col = np.dot(W_reshape.T,dY_reshaped)
-        x_shape = (batch_size,self.x_shape[1],self.x_shape[2],self.x_shape[3]) 
-        dX = self.col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
+        dX = None
 
         return dX,[(self.W, dW),(self.b, db)]
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D,Vectorize
+from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D
 from network import Network
 
 def train_network(network, inputs, labels, n_epochs, batch_size=128):
@@ -128,10 +128,8 @@ def main():
     inputs, labels = load_mnist_images()
 
     # Define network without batch norm
-    net = Network(learning_rate = 1e-2)
+    net = Network(learning_rate = 1e-3)
     net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
-    #net.add_layer(Convolution2D(2,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
-    net.add_layer(Vectorize())
     net.add_layer(ReLU())
     net.add_layer(BatchNorm(800))
     net.add_layer(Linear(800, 128))
@@ -140,7 +138,7 @@ def main():
     net.add_layer(Linear(128, n_classes))
     net.set_loss(SoftmaxCrossEntropyLoss())
 
-    train_network(net, inputs, labels, 10)
+    train_network(net, inputs, labels, 250)
     test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
                                             batch_size=128)
     print('Baseline MLP Network without batch normalization:')
