@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import math
-from CNN_main import load_mnist_images
+from main import load_mnist_images
 from network import Network
 from layers import Linear,BatchNorm,ReLU,Convolution2D,SoftmaxCrossEntropyLoss
 
