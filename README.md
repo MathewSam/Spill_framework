@@ -1,13 +1,28 @@
 # mnist-numpy
-A basic fully connected network implemented purely in NumPy and trained on the MNIST dataset.
+A basic fully connected network implemented purely in NumPy and trained and tested on the MNIST dataset.
 
-## Experiments
+## Recommended Python Libraries
+Numpy(ver 1.14.3)
+
+## Data Statistics
 The MNIST dataset is split into 50000 train, 10000 validation and 10000 test samples. All splits are normalized using the statistics of the training split (using the global mean and standard deviation, not per pixel).
 
+## Experiments
+
+### Vanilla Multi Layer Perceptron
 The network has 2 fully connected layers with ReLU activations. The first hidden layer has 256 units and the second 128 units. The network is initialized with Xavier-He initialization.
 
 The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.97.
 
+### BatchNorm applied Multilayer Perceptron
+The network has 2 fully connected layers with ReLU activations. The first hidden layer has 256 units and the second 128 units with batchnorm operation on data entering and exiting the hidden layer with 128 nuerons. The network is initialized with Xavier-He initialization.
+
+The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.971.
+
+### Convolution Neural Networks
+The network has a convolutional layer with a 3x3 kernel with a dilation of 2 followed by a hidden layer of 128 neurons which then lead to the output.
+
+The network is trained for 250 epochs with vanilla minibatch SGD and learning rate 1e-3. The final accuracy on the test set is about 0.97.
 
 ## Code structure:
 ### layers.py
