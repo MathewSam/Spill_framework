@@ -184,3 +184,15 @@ However, to stack more convolutional layers, the changes explained in the previo
     print('Test accuracy:', test_acc)
     return net
 
+## Running the code/Usage
+To run the code, simply run:
+    python main.py network_type -o
+
+The network_types that are supported are:
+1. Vanilla (Plain MLP)
+2. Batch_Norm (for MLP with batch norm between layers)
+3. CNN
+
+Inputing any other type will raise an assertion error. The -o is optional. It enables saving the model as a pickle file. For help, please run:
+
+    python main.py -help
