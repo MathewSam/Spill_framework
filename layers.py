@@ -152,8 +152,22 @@ class BatchNorm(Layer):
 
 class Convolution2D(Layer):
     '''
+    Creates and operates kernels for convolution/correlation operations on 2D images
     '''
     def __init__(self,channels_in,channels_out,image_height,image_width,pad=0,stride=1,filter_size=3,dilation=1):
+        '''
+        Args:
+            self:pointer to current instance of the class
+            channels_in:(data type:int)number of channels of samples entering the class/depth of input feature map
+            channels_out:(data type:int)number of output channels exiting after CNN
+            image_height:(data type:int)Height of input image
+            image_width:(data type:int)Width of input image
+        Kwargs:
+            pad:(data type:int) default value 0
+            stride:(data type:int) default value 1
+            filter_size:(data type:int)default value 3
+            dilation:(data type:int)default value 1
+        '''
         assert (image_height - filter_size + 2*pad)% stride ==0
         assert (image_width - filter_size + 2*pad)% stride ==0
 
@@ -182,8 +196,9 @@ class Convolution2D(Layer):
                 self.set_weights_zero[:,:,:,i] = 0
         self.W = self.W*self.set_weights_zero
 
-        x_shape = (None,channels_in,image_height,image_width)
-        self.channel_shuffling,self.row_shuffling,self.column_shuffling = get_im2col_indices(x_shape, self.filter_size, self.filter_size, padding=0, stride=1) 
+        #calculating shuffling caused by im2col
+        self.x_shape = (None,channels_in,image_height,image_width)
+        self.channel_shuffling,self.row_shuffling,self.column_shuffling = get_im2col_indices(self.x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride) 
         
     def __repr__(self):
         return "2DConvolution layer"
@@ -222,13 +237,46 @@ class Convolution2D(Layer):
 
     def backward(self,dY):
         
+        #reshaping incoming gradients to output image dimensions
         dY = dY.reshape(-1,self.channels_out,self.output_height,self.output_width)
+        batch_size = dY.shape[0]
+        #Calculating bias
         db = np.sum(dY, axis=(0, 2, 3))
         db = db.reshape(self.channels_out, 1)
         
+        #Calculating weights in kernel
         dY_reshaped = dY.transpose(1, 2, 3, 0).reshape(self.channels_out, -1)
         dW = np.dot(dY_reshaped,self.cache_in.T)
         dW = dW.reshape(self.W.shape)
+        #Setting dilation positions to 0
         dW = dW*self.set_weights_zero
 
-        return None,[(self.W, dW),(self.b, db)]
+        #Calculating X gradient for future use
+        W_reshape = self.W.reshape(self.channels_out, -1)
+        dX_col = np.dot(W_reshape.T,dY_reshaped)
+        x_shape = (batch_size,self.x_shape[1],self.x_shape[2],self.x_shape[3]) 
+        dX = col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
+
+        return dX,[(self.W, dW),(self.b, db)]
+
+
+class Vectorize(Layer):
+    def __init__(self):
+        '''
+        Vectorizes incoming data to shape batch_size,num_features
+        '''
+        self.cache_in = None
+    
+    def __repr__(self):
+        return "Vectorization function"
+
+    def forward(self, X, train=True):
+        if train:
+            self.cache_in = (X.shape[1],X.shape[2],X.shape[3])
+        batch_size = X.shape[0]
+        return X.reshape(batch_size,-1)
+
+    def backward(self, dY):
+        if self.cache_in is None:
+            raise RuntimeError('Gradient cache not defined. When training the train argument must be set to true in the forward pass.')
+        return dY.reshape(-1,self.cache_in[0],self.cache_in[1],self.cache_in[2]), []

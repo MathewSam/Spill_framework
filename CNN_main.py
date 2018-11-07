@@ -138,7 +138,7 @@ def main():
     net.add_layer(Linear(128, n_classes))
     net.set_loss(SoftmaxCrossEntropyLoss())
 
-    train_network(net, inputs, labels, 250)
+    train_network(net, inputs, labels, 10)
     test_loss, test_acc = validate_network(net, inputs['test'], labels['test'],
                                             batch_size=128)
     print('Baseline MLP Network without batch normalization:')
