@@ -64,7 +64,9 @@ Testing module to test whether the CNN operations work
 ## Design Choices:
 The Convolution2D class is responsible for implementing the convolution layer which replaces the first linear layer. A few design choices were made to speed up the training process. However, with a few small adjustments, one can make the model generalizable to any kind of CNN structure with more than one convolutional layer. 
 
-### Convolution2D backpropagation:
+### Batch Norm:
+The mean batch norm for the linear layer is implemented as per the requirements placed in the provided question. On initializing the class , a 1D vector of zeros for the number of features is initialized. This feature vector is the external/ parameterized mean shift that is learnt by the network.For the sake of the problem here, the mean during testing is taken as the running mean of training set.
+### Convolution2D :
 The current backpropagation algorithm does not backpropagate the signal gradient since the convolutional layer is the first layer without any further convolution layers in the mix. This saves computational energy and time during training making the algorithm train faster. One can adjust this to allow for calculating the signal gradient by replacing the backward and forward function of Convolution2D with
 
 
@@ -109,10 +111,15 @@ The current backpropagation algorithm does not backpropagate the signal gradient
         
         return dX,[(self.W, dW),(self.b, db)]
 
-Using the Vectorize layer can help stack the convolutional layers to the linear layers and provide a means to reshape the gradient as needed. However, making these changes adds time and computation to the code. The current code has been designed to train fast with as little unnecessary computation as possible
+Using the Vectorize layer can help stack the convolutional layers to the linear layers and provide a means to reshape the gradient as needed. However, making these changes adds time and computation to the code. The current code has been designed to train fast with as little unnecessary computation as possible.
+
+The current code **DOES NOT** use the vectorize class and the vectorize operation is handled internally .The changes allow take the vectorization out of the class. The above changes are suggested to allow design of more complicated and complex networks if desired.
+
+For the current configuration, the model's gradient backpropagation is tested with gradient checking in the test_CNN.py file.
+
 
 ### Sample architecture
-A simple architecture with the changes suggested above is shown here:
+A simple architecture with the changes suggested above for more complex networks is shown here:
 
 
 
@@ -145,4 +152,4 @@ A simple architecture with the changes suggested above is shown here:
 
     print('Test accuracy:', test_acc)
 
-While the above model trains significantly slower, the model gains an accuracy of 0.95 in the first 5 epochs with a learning rate of 1e-2 and vanilla SGD.
+While the above model trains significantly slower, the model gains an accuracy of 0.95 in the first 5 epochs with a learning rate of 1e-2 and vanilla minibacth SGD.

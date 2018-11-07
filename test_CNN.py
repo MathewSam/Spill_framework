@@ -72,15 +72,7 @@ def weight_eps_plus(net,location,epsilon):
     Args:
         net:Network defined for testing purposes
         location:Location at which testing takes place
-        epsilon: Shift for which testing takes place    net = Network(learning_rate = 1e-3)
-    net.add_layer(Convolution2D(1,1,28,28,pad=0,stride=1,filter_size=3,dilation=2))
-    net.add_layer(ReLU())
-    net.add_layer(BatchNorm(400))
-    net.add_layer(Linear(400, 128))
-    net.add_layer(ReLU())
-    net.add_layer(BatchNorm(128))
-    net.add_layer(Linear(128, n_classes))
-    net.set_loss(SoftmaxCrossEntropyLoss())
+        epsilon: Shift for which testing takes place    n
     '''
     import copy
     net_eps_plus = copy.deepcopy(net) 

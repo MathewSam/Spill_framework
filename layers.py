@@ -98,13 +98,20 @@ class BatchNorm(Layer):
         '''
         assert isinstance(num_features,int)
         self.beta = np.zeros((1,num_features))
+        self.running_mean = np.zeros((1,num_features))
+        self.mean_weight = 0.9
     
     def __repr__(self):
         return "Batch Normalization"
 
     def forward(self,X,train=True):
-        self.weight = np.eye(X.shape[0]) - (np.ones((1,X.shape[0]))/X.shape[0])
-        X_norm = X - np.mean(X,axis = 0)
+        if train==True:
+            self.weight = np.eye(X.shape[0]) - (np.ones((1,X.shape[0]))/X.shape[0])
+            X_norm = X - np.mean(X,axis = 0)
+            self.running_mean = (1-self.mean_weight)*np.mean(X,axis = 0) + (self.mean_weight*self.running_mean)
+        else:
+            X_norm = X - self.running_mean
+
         X_hat = X_norm + self.beta
         return X_hat
     
