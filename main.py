@@ -244,4 +244,4 @@ def train_network(network, inputs, labels, n_epochs, batch_size=128):
         print(prnt_tmplt.format(epoch, avg_train_loss, avg_val_loss, val_acc))
 
 if __name__ == '__main__':
-    main()
+    BatchNorm

@@ -87,44 +87,6 @@ class ReLU(Layer):
             raise RuntimeError('Gradient cache not defined. When training the train argument must be set to true in the forward pass.')
         return dY * (self.cache_in >= 0), []
 
-class Loss(object):
-    '''
-    Abstract class representing a loss function
-    '''
-    def get_loss(self):
-        raise NotImplementedError('This is an abstract class')
-
-class SoftmaxCrossEntropyLoss(Loss):
-    '''
-    Represents the categorical softmax cross entropy loss
-    '''
-
-    def get_loss(self, scores, labels):
-        '''
-        Calculates the average categorical softmax cross entropy loss.
-
-        Args:
-            scores (numpy.ndarray): Unnormalized logit class scores. Shape (batch_size, num_classes)
-            labels (numpy.ndarray): True labels represented as ints (eg. 2 represents the third class). Shape (batch_size)
-
-        Returns:
-            loss, grad
-            loss (float): The average cross entropy between labels and the softmax normalization of scores
-            grad (numpy.ndarray): Gradient for scores with respect to the loss. Shape (batch_size, num_classes)
-        '''
-        scores_norm = scores - np.max(scores, axis=1, keepdims=True)
-        scores_norm = np.exp(scores_norm)
-        scores_norm = scores_norm / np.sum(scores_norm, axis=1, keepdims=True)
-
-        true_class_scores = scores_norm[np.arange(len(labels)), labels]
-        loss = np.mean(-np.log(true_class_scores))
-
-        one_hot = np.zeros(scores.shape)
-        one_hot[np.arange(len(labels)), labels] = 1.0
-        grad = (scores_norm - one_hot) / len(labels)
-
-        return loss, grad
-
 class BatchNorm(Layer):
     def __init__(self,num_features):
         '''
@@ -220,9 +182,10 @@ class Convolution2D(Layer):
         output = np.dot(temp_Weights,cols) + self.b
         output = output.reshape(self.channels_out,self.output_height,self.output_width,batch_size)
         output = output.transpose(3, 0, 1, 2)
-        return output.reshape(batch_size,-1)
+        return output
+        #return output.reshape(batch_size,-1)
 
-    def col2im(self,cols, x_shape, field_height=3, field_width=3, padding=1,stride=1):
+    def col2im_indices(self,cols, x_shape, field_height=3, field_width=3, padding=1,stride=1):
         N, C, H, W = x_shape
         H_padded, W_padded = H + 2 * padding, W + 2 * padding
         x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
@@ -238,7 +201,7 @@ class Convolution2D(Layer):
     def backward(self,dY):
         
         #reshaping incoming gradients to output image dimensions
-        dY = dY.reshape(-1,self.channels_out,self.output_height,self.output_width)
+        #dY = dY.reshape(-1,self.channels_out,self.output_height,self.output_width)
         batch_size = dY.shape[0]
         #Calculating bias
         db = np.sum(dY, axis=(0, 2, 3))
@@ -255,7 +218,7 @@ class Convolution2D(Layer):
         W_reshape = self.W.reshape(self.channels_out, -1)
         dX_col = np.dot(W_reshape.T,dY_reshaped)
         x_shape = (batch_size,self.x_shape[1],self.x_shape[2],self.x_shape[3]) 
-        dX = col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
+        dX = self.col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
 
         return dX,[(self.W, dW),(self.b, db)]
 
@@ -280,3 +243,43 @@ class Vectorize(Layer):
         if self.cache_in is None:
             raise RuntimeError('Gradient cache not defined. When training the train argument must be set to true in the forward pass.')
         return dY.reshape(-1,self.cache_in[0],self.cache_in[1],self.cache_in[2]), []
+
+
+class Loss(object):
+    '''
+    Abstract class representing a loss function
+    '''
+    def get_loss(self):
+        raise NotImplementedError('This is an abstract class')
+
+class SoftmaxCrossEntropyLoss(Loss):
+    '''
+    Represents the categorical softmax cross entropy loss
+    '''
+
+    def get_loss(self, scores, labels):
+        '''
+        Calculates the average categorical softmax cross entropy loss.
+
+        Args:
+            scores (numpy.ndarray): Unnormalized logit class scores. Shape (batch_size, num_classes)
+            labels (numpy.ndarray): True labels represented as ints (eg. 2 represents the third class). Shape (batch_size)
+
+        Returns:
+            loss, grad
+            loss (float): The average cross entropy between labels and the softmax normalization of scores
+            grad (numpy.ndarray): Gradient for scores with respect to the loss. Shape (batch_size, num_classes)
+        '''
+        scores_norm = scores - np.max(scores, axis=1, keepdims=True)
+        scores_norm = np.exp(scores_norm)
+        scores_norm = scores_norm / np.sum(scores_norm, axis=1, keepdims=True)
+
+        true_class_scores = scores_norm[np.arange(len(labels)), labels]
+        loss = np.mean(-np.log(true_class_scores))
+
+        one_hot = np.zeros(scores.shape)
+        one_hot[np.arange(len(labels)), labels] = 1.0
+        grad = (scores_norm - one_hot) / len(labels)
+
+        return loss, grad
+

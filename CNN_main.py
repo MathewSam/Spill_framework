@@ -1,6 +1,6 @@
 import numpy as np
 
-from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D
+from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D,Vectorize
 from network import Network
 
 def train_network(network, inputs, labels, n_epochs, batch_size=128):
@@ -130,6 +130,8 @@ def main():
     # Define network without batch norm
     net = Network(learning_rate = 1e-2)
     net.add_layer(Convolution2D(1,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+    #net.add_layer(Convolution2D(2,2,28,28,pad=0,stride=1,filter_size=3,dilation=2))
+    net.add_layer(Vectorize())
     net.add_layer(ReLU())
     net.add_layer(BatchNorm(800))
     net.add_layer(Linear(800, 128))

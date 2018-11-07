@@ -30,7 +30,24 @@ The network is trained for 250 epochs with vanilla minibatch SGD and learning ra
 ### layers.py
 Contains classes that represent layers for different transformations. Each class has a forward and a backward method that define a transformation and its gradient. The class keeps track of the variables defining the transformation and the variables needed to calculate the gradient. The file also contains a class that defines the softmax cross entropy loss.
 
+#### Linear
+Responsible for the linear transformations between layers
+#### ReLU
+Responsible for non linear relu operation on inputs to the layer
+#### BatchNorm
+Responsible for version of batchnorm described in question as in Task1
+#### Convolution2D
+Responsible for the 2D convolution layer/kernels which is learnt and used as required 
+#### Vectorize
+Responsible for vectorizing inputs to the layer from the output of a CNN stack
+*Not required by question. Was added to allow for freedom to add convolutional layers
+
+#### SoftmaxCrossEntropyLoss
+Uses logits to calculate soft max probabilities and associated loss from cross entropy function
+
+
 ### im2col.py
+Introduces a function that calculates the permutation required to convert input image to column vector used to carry out convolution/correlation of the image and kernel using matrix multiplications
 
 ### network.py
 Defines Network, a configurable class representing a sequential neural network with any combination of layers. Network has a train function that performs minibatch SGD.
