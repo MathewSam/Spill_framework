@@ -58,8 +58,6 @@ The Convolution2D class is responsible for implementing the convolution layer wh
 ### Convolution2D backpropagation:
 The current backpropagation algorithm does not backpropagate the signal gradient since the convolutional layer is the first layer without any further convolution layers in the mix. This saves computational energy and time during training making the algorithm train faster. One can adjust this to allow for calculating the signal gradient by replacing the backward and forward function of Convolution2D with
 
-'''
-
 
     def forward(self,X,train=True):
         batch_size,channels_in,image_height,image_width = X.shape
@@ -101,13 +99,14 @@ The current backpropagation algorithm does not backpropagate the signal gradient
         dX = col2im_indices(dX_col, x_shape, self.filter_size, self.filter_size, padding=self.pad, stride=self.stride)
         
         return dX,[(self.W, dW),(self.b, db)]
-'''
+
 Using the Vectorize layer can help stack the convolutional layers to the linear layers and provide a means to reshape the gradient as needed. However, making these changes adds time and computation to the code. The current code has been designed to train fast with as little unnecessary computation as possible
 
 ### Sample architecture
 A simple architecture with the changes suggested above is shown here:
 
-''' 
+
+
     import numpy as np
 
     from layers import Linear, ReLU, SoftmaxCrossEntropyLoss,BatchNorm,Convolution2D,Vectorize
@@ -135,6 +134,6 @@ A simple architecture with the changes suggested above is shown here:
     print('Baseline MLP Network without batch normalization:')
     print('Test loss:', test_loss)
 
-    print('Test accuracy:', test_acc)'''
+    print('Test accuracy:', test_acc)
 
 While the above model trains significantly slower, the model gains an accuracy of 0.95 in the first 5 epochs with a learning rate of 1e-2 and vanilla SGD.
