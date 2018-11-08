@@ -93,7 +93,7 @@ def test_grad_checking(location,epsilon):
     analytic_gradient = generate_batch_norm_gradient(net,grad)
     #Generate new network for numeric gradient calculation
     net_eps_plus = network_eps_plus(net,location,epsilon)
-    scores = net_eps_plus.predict(test_input)
+    scores = net_eps_plus.predict(test_input,train=True)
     loss_eps,_ = net_eps_plus.loss.get_loss(scores,test_label)
     numeric_gradient = (loss_eps - loss)/epsilon  
     print("At location {0} the log of difference between numeric and caculated difference = {1} for an epsilon of {2}\n".format(location,numeric_gradient-analytic_gradient[location],epsilon))
