@@ -186,7 +186,7 @@ However, to stack more convolutional layers, the changes explained in the previo
 
 ## Running the code/Usage
 To run the code, simply run:
-    python main.py network_type -o
+    python main.py network_type
 
 The network_types that are supported are:
 1. Vanilla (Plain MLP)
@@ -195,4 +195,4 @@ The network_types that are supported are:
 
 Inputing any other type will raise an assertion error. The -o is optional. It enables saving the model as a pickle file. For help, please run:
 
-    python main.py -help
+    python main.py -h
